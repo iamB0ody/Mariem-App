@@ -13,6 +13,138 @@ webOS.service.request("luna://com.palm.systemservice", {
 // YouTube API Key - Replace with your own API key
 const YOUTUBE_API_KEY = "AIzaSyBZWVWhRzZTKjRJXXNryryxzW6Pa2EjShs"
 
+// Language settings
+let currentLanguage = "en" // Default language is English
+
+// Translations
+const translations = {
+  en: {
+    welcomeHeader: "Mariem's Favorite Videos",
+    loadingText: "Loading videos for Mariem...",
+    loadMoreButton: "Load More Videos",
+    loadingButton: "Loading...",
+    tryAgainButton: "Try Again",
+    noVideosMessage: "No videos found. Please try again later.",
+    errorMessage: "Failed to load videos. Please try again later.",
+    sidebarCategory: "Mariem's Islamic Favorites",
+    home: "Home",
+    pinkIslamicSongs: "Pink Islamic Songs",
+    arabicNurseryRhymes: "Arabic Nursery Rhymes",
+    simpleQuran: "Simple Quran",
+    arabicAlphabet: "Arabic Alphabet",
+    islamicCartoons: "Islamic Cartoons",
+    arabicAnimals: "Arabic Animals",
+  },
+  ar: {
+    welcomeHeader: "فيديوهات مريم المفضلة",
+    loadingText: "جاري تحميل الفيديوهات لمريم...",
+    loadMoreButton: "تحميل المزيد من الفيديوهات",
+    loadingButton: "جاري التحميل...",
+    tryAgainButton: "حاول مرة أخرى",
+    noVideosMessage: "لم يتم العثور على فيديوهات. يرجى المحاولة مرة أخرى لاحقًا.",
+    errorMessage: "فشل تحميل الفيديوهات. يرجى المحاولة مرة أخرى لاحقًا.",
+    sidebarCategory: "مفضلات مريم الإسلامية",
+    home: "الرئيسية",
+    pinkIslamicSongs: "أناشيد إسلامية وردية",
+    arabicNurseryRhymes: "أغاني أطفال عربية",
+    simpleQuran: "قرآن مبسط",
+    arabicAlphabet: "الحروف العربية",
+    islamicCartoons: "رسوم متحركة إسلامية",
+    arabicAnimals: "الحيوانات باللغة العربية",
+  },
+}
+
+// Function to toggle language
+function toggleLanguage() {
+  currentLanguage = currentLanguage === "en" ? "ar" : "en"
+
+  // Toggle RTL class on body
+  if (currentLanguage === "ar") {
+    document.body.classList.add("rtl")
+  } else {
+    document.body.classList.remove("rtl")
+  }
+
+  // Update UI text
+  updateUILanguage()
+
+  // Reload current view
+  if (document.querySelector(".category-header") && document.querySelector(".category-header").textContent !== translations[currentLanguage].welcomeHeader) {
+    // We're in a category view, reload that category
+    const categoryName = document.querySelector(".category-header").textContent
+    const categoryKey = getCategoryKeyByName(categoryName)
+    if (categoryKey) {
+      searchVideosByCategory(translations[currentLanguage][categoryKey])
+    } else {
+      generateVideos() // Fallback to home
+    }
+  } else {
+    // We're in home view
+    generateVideos()
+  }
+}
+
+// Function to get category key by name
+function getCategoryKeyByName(name) {
+  const enEntries = Object.entries(translations.en)
+  for (const [key, value] of enEntries) {
+    if (value === name) return key
+  }
+
+  const arEntries = Object.entries(translations.ar)
+  for (const [key, value] of arEntries) {
+    if (value === name) return key
+  }
+
+  return null
+}
+
+// Function to update UI language
+function updateUILanguage() {
+  // Update sidebar category
+  const sidebarCategory = document.querySelector(".sidebar-category")
+  if (sidebarCategory) {
+    sidebarCategory.textContent = translations[currentLanguage].sidebarCategory
+  }
+
+  // Update sidebar items
+  const sidebarItems = document.querySelectorAll(".sidebar-item-text")
+  if (sidebarItems.length > 0) {
+    sidebarItems[0].textContent = translations[currentLanguage].home
+    sidebarItems[1].textContent = translations[currentLanguage].pinkIslamicSongs
+    sidebarItems[2].textContent = translations[currentLanguage].arabicNurseryRhymes
+    sidebarItems[3].textContent = translations[currentLanguage].simpleQuran
+    sidebarItems[4].textContent = translations[currentLanguage].arabicAlphabet
+    sidebarItems[5].textContent = translations[currentLanguage].islamicCartoons
+    sidebarItems[6].textContent = translations[currentLanguage].arabicAnimals
+  }
+
+  // Update language button text
+  const langButton = document.getElementById("language-button")
+  if (langButton) {
+    const langTexts = langButton.querySelectorAll(".lang-text")
+    if (currentLanguage === "en") {
+      langTexts[0].style.fontWeight = "bold"
+      langTexts[1].style.fontWeight = "normal"
+    } else {
+      langTexts[0].style.fontWeight = "normal"
+      langTexts[1].style.fontWeight = "bold"
+    }
+  }
+
+  // Update welcome header if present
+  const welcomeHeader = document.querySelector(".welcome-header")
+  if (welcomeHeader) {
+    welcomeHeader.textContent = translations[currentLanguage].welcomeHeader
+  }
+
+  // Update load more button if present
+  const loadMoreButton = document.querySelector(".load-more-button")
+  if (loadMoreButton && !loadMoreButton.disabled) {
+    loadMoreButton.textContent = translations[currentLanguage].loadMoreButton
+  }
+}
+
 // Cache for storing API responses to reduce API calls
 const apiCache = {}
 const CACHE_EXPIRY = 24 * 60 * 60 * 1000 // 24 hours in milliseconds
@@ -80,17 +212,33 @@ function formatPublishedDate(publishedDate) {
   const diffTime = Math.abs(now - date)
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
-  if (diffDays < 7) {
-    return `${diffDays} days ago`
-  } else if (diffDays < 30) {
-    const weeks = Math.floor(diffDays / 7)
-    return `${weeks} ${weeks === 1 ? "week" : "weeks"} ago`
-  } else if (diffDays < 365) {
-    const months = Math.floor(diffDays / 30)
-    return `${months} ${months === 1 ? "month" : "months"} ago`
+  if (currentLanguage === "en") {
+    if (diffDays < 7) {
+      return `${diffDays} days ago`
+    } else if (diffDays < 30) {
+      const weeks = Math.floor(diffDays / 7)
+      return `${weeks} ${weeks === 1 ? "week" : "weeks"} ago`
+    } else if (diffDays < 365) {
+      const months = Math.floor(diffDays / 30)
+      return `${months} ${months === 1 ? "month" : "months"} ago`
+    } else {
+      const years = Math.floor(diffDays / 365)
+      return `${years} ${years === 1 ? "year" : "years"} ago`
+    }
   } else {
-    const years = Math.floor(diffDays / 365)
-    return `${years} ${years === 1 ? "year" : "years"} ago`
+    // Arabic date format
+    if (diffDays < 7) {
+      return `منذ ${diffDays} أيام`
+    } else if (diffDays < 30) {
+      const weeks = Math.floor(diffDays / 7)
+      return `منذ ${weeks} ${weeks === 1 ? "أسبوع" : "أسابيع"}`
+    } else if (diffDays < 365) {
+      const months = Math.floor(diffDays / 30)
+      return `منذ ${months} ${months === 1 ? "شهر" : "أشهر"}`
+    } else {
+      const years = Math.floor(diffDays / 365)
+      return `منذ ${years} ${years === 1 ? "سنة" : "سنوات"}`
+    }
   }
 }
 
@@ -111,9 +259,12 @@ function createVideoCard(video, category) {
   // Get age range
   const ageRange = getRandomAgeRange(category)
 
+  // Age badge text based on language
+  const ageBadgeText = currentLanguage === "en" ? `Ages ${ageRange}` : `الأعمار ${ageRange}`
+
   videoCard.innerHTML = `
     <div class="thumbnail" style="background-image: url('${video.thumbnail}'); background-size: cover; background-position: center;">
-      <div class="age-badge">Ages ${ageRange}</div>
+      <div class="age-badge">${ageBadgeText}</div>
     </div>
     <div class="video-info">
       <div class="channel-icon">${channelInitial}</div>
@@ -138,11 +289,15 @@ function playVideo(videoId, videoTitle) {
   // Create a modal for the video player
   const modal = document.createElement("div")
   modal.className = "video-modal"
+
+  // Close button text based on language
+  const closeButtonText = currentLanguage === "en" ? "×" : "×"
+
   modal.innerHTML = `
     <div class="video-modal-content">
       <div class="video-modal-header">
         <h3>${videoTitle}</h3>
-        <button class="close-button">&times;</button>
+        <button class="close-button">${closeButtonText}</button>
       </div>
       <div class="video-player">
         <iframe 
@@ -235,13 +390,13 @@ async function generateVideos() {
   // Add welcome header for home page
   const welcomeHeader = document.createElement("h1")
   welcomeHeader.className = "welcome-header"
-  welcomeHeader.textContent = "Mariem's Favorite Videos"
+  welcomeHeader.textContent = translations[currentLanguage].welcomeHeader
   content.appendChild(welcomeHeader)
 
   // Show loading indicator
   const loadingIndicator = document.createElement("div")
   loadingIndicator.className = "loading-indicator"
-  loadingIndicator.textContent = "Loading videos for Mariem..."
+  loadingIndicator.textContent = translations[currentLanguage].loadingText
   content.appendChild(loadingIndicator)
 
   // Define all categories keywords for search
@@ -271,7 +426,7 @@ async function generateVideos() {
     if (videos.length === 0) {
       const noVideosMessage = document.createElement("div")
       noVideosMessage.className = "no-videos-message"
-      noVideosMessage.textContent = "No videos found. Please try again later."
+      noVideosMessage.textContent = translations[currentLanguage].noVideosMessage
       content.appendChild(noVideosMessage)
       return
     }
@@ -293,7 +448,7 @@ async function generateVideos() {
 
     const loadMoreButton = document.createElement("button")
     loadMoreButton.className = "load-more-button"
-    loadMoreButton.textContent = "Load More Videos"
+    loadMoreButton.textContent = translations[currentLanguage].loadMoreButton
     loadMoreContainer.appendChild(loadMoreButton)
     content.appendChild(loadMoreContainer)
 
@@ -304,7 +459,7 @@ async function generateVideos() {
 
     loadMoreButton.addEventListener("click", async () => {
       // Show loading state
-      loadMoreButton.textContent = "Loading..."
+      loadMoreButton.textContent = translations[currentLanguage].loadingButton
       loadMoreButton.disabled = true
 
       try {
@@ -331,7 +486,7 @@ async function generateVideos() {
         videosLoaded += moreVideos.length
 
         // Reset button state
-        loadMoreButton.textContent = "Load More Videos"
+        loadMoreButton.textContent = translations[currentLanguage].loadMoreButton
         loadMoreButton.disabled = false
 
         // Hide button if we've reached the maximum
@@ -340,7 +495,7 @@ async function generateVideos() {
         }
       } catch (error) {
         console.error("Error loading more videos:", error)
-        loadMoreButton.textContent = "Try Again"
+        loadMoreButton.textContent = translations[currentLanguage].tryAgainButton
         loadMoreButton.disabled = false
       }
     })
@@ -355,7 +510,7 @@ async function generateVideos() {
     // Show error message
     const errorMessage = document.createElement("div")
     errorMessage.className = "error-message"
-    errorMessage.textContent = "Failed to load videos. Please try again later."
+    errorMessage.textContent = translations[currentLanguage].errorMessage
     content.appendChild(errorMessage)
   }
 }
@@ -369,7 +524,7 @@ function setupSidebarNavigation() {
       const text = item.querySelector(".sidebar-item-text").textContent
 
       // Handle navigation based on the clicked item
-      if (text === "Home") {
+      if (text === translations[currentLanguage].home) {
         generateVideos() // Reload the main page
       } else {
         // For other categories, search for videos related to that category
@@ -377,6 +532,12 @@ function setupSidebarNavigation() {
       }
     })
   })
+
+  // Add event listener for language toggle button
+  const languageButton = document.getElementById("language-button")
+  if (languageButton) {
+    languageButton.addEventListener("click", toggleLanguage)
+  }
 }
 
 // Function to search videos by category
@@ -395,37 +556,32 @@ async function searchVideosByCategory(category) {
   // Show loading indicator
   const loadingIndicator = document.createElement("div")
   loadingIndicator.className = "loading-indicator"
-  loadingIndicator.textContent = "Loading videos for Mariem..."
+  loadingIndicator.textContent = translations[currentLanguage].loadingText
   content.appendChild(loadingIndicator)
 
   // Map sidebar text to search keywords for a 2-year-old
   let searchQuery = ""
-  switch (category) {
-    case "Home":
-      // Just reload the main page
-      content.innerHTML = ""
-      generateVideos()
-      return
-    case "Pink Islamic Songs":
-      searchQuery = "islamic songs for toddlers pink"
-      break
-    case "Arabic Nursery Rhymes":
-      searchQuery = "arabic nursery rhymes for toddlers"
-      break
-    case "Simple Quran":
-      searchQuery = "quran for toddlers simple"
-      break
-    case "Arabic Alphabet":
-      searchQuery = "arabic alphabet for toddlers"
-      break
-    case "Islamic Cartoons":
-      searchQuery = "islamic cartoons arabic for toddlers"
-      break
-    case "Arabic Animals":
-      searchQuery = "arabic animal names for toddlers"
-      break
-    default:
-      searchQuery = `arabic islamic ${category.toLowerCase()} for toddlers`
+
+  // English category names
+  if (category === translations.en.pinkIslamicSongs || category === translations.ar.pinkIslamicSongs) {
+    searchQuery = "islamic songs for toddlers pink"
+  } else if (category === translations.en.arabicNurseryRhymes || category === translations.ar.arabicNurseryRhymes) {
+    searchQuery = "arabic nursery rhymes for toddlers"
+  } else if (category === translations.en.simpleQuran || category === translations.ar.simpleQuran) {
+    searchQuery = "quran for toddlers simple"
+  } else if (category === translations.en.arabicAlphabet || category === translations.ar.arabicAlphabet) {
+    searchQuery = "arabic alphabet for toddlers"
+  } else if (category === translations.en.islamicCartoons || category === translations.ar.islamicCartoons) {
+    searchQuery = "islamic cartoons arabic for toddlers"
+  } else if (category === translations.en.arabicAnimals || category === translations.ar.arabicAnimals) {
+    searchQuery = "arabic animal names for toddlers"
+  } else if (category === translations.en.home || category === translations.ar.home) {
+    // Just reload the main page
+    content.innerHTML = ""
+    generateVideos()
+    return
+  } else {
+    searchQuery = `arabic islamic ${category.toLowerCase()} for toddlers`
   }
 
   try {
@@ -445,7 +601,7 @@ async function searchVideosByCategory(category) {
     if (videos.length === 0) {
       const noVideosMessage = document.createElement("div")
       noVideosMessage.className = "no-videos-message"
-      noVideosMessage.textContent = "No videos found for this category."
+      noVideosMessage.textContent = translations[currentLanguage].noVideosMessage
       content.appendChild(noVideosMessage)
       return
     }
@@ -469,7 +625,7 @@ async function searchVideosByCategory(category) {
     // Show error message
     const errorMessage = document.createElement("div")
     errorMessage.className = "error-message"
-    errorMessage.textContent = "Failed to load videos. Please try again later."
+    errorMessage.textContent = translations[currentLanguage].errorMessage
     content.appendChild(errorMessage)
   }
 }
