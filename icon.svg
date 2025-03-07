@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+    <!-- Background -->
+    <rect width="512" height="512" rx="80" fill="#ff69b4" />
+
+    <!-- Inner circle -->
+    <circle cx="256" cy="256" r="200" fill="#ffffff" />
+
+    <!-- Islamic star symbol -->
+    <path
+        d="M256 100 L287 200 L391 200 L306 260 L337 360 L256 300 L175 360 L206 260 L121 200 L225 200 Z"
+        fill="#ff69b4" />
+
+    <!-- Heart symbol -->
+    <path
+        d="M256 350 C256 350, 400 250, 350 200 C300 150, 256 200, 256 200 C256 200, 212 150, 162 200 C112 250, 256 350, 256 350 Z"
+        fill="#ff69b4" />
+
+    <!-- Text "Mariem" -->
+    <text x="256" y="420" font-family="Arial, sans-serif" font-size="40" font-weight="bold"
+        text-anchor="middle" fill="#ff69b4">MARIEM</text>
+</svg> 

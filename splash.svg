@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+    <!-- Background gradient -->
+    <defs>
+        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#ff9ed8;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#ff69b4;stop-opacity:1" />
+        </linearGradient>
+    </defs>
+
+    <!-- Background -->
+    <rect width="1920" height="1080" fill="url(#grad)" />
+
+    <!-- Decorative elements -->
+    <circle cx="960" cy="540" r="300" fill="#ffffff" opacity="0.1" />
+    <circle cx="960" cy="540" r="200" fill="#ffffff" opacity="0.2" />
+
+    <!-- App name -->
+    <text x="960" y="500" font-family="Arial, sans-serif" font-size="80" font-weight="bold"
+        text-anchor="middle" fill="#ffffff">Mariem's Islamic Kids TV</text>
+
+    <!-- Heart icon -->
+    <text x="960" y="650" font-family="Arial, sans-serif" font-size="120" text-anchor="middle"
+        fill="#ffffff">💖</text>
+</svg> 

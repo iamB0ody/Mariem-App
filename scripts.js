@@ -19,7 +19,7 @@ let currentLanguage = "en" // Default language is English
 // Translations
 const translations = {
   en: {
-    welcomeHeader: "Mariem's Favorite Videos",
+    welcomeHeader: "Mariem's Islamic Kids TV",
     loadingText: "Loading videos for Mariem...",
     loadMoreButton: "Load More Videos",
     loadingButton: "Loading...",
@@ -36,7 +36,7 @@ const translations = {
     arabicAnimals: "Arabic Animals",
   },
   ar: {
-    welcomeHeader: "فيديوهات مريم المفضلة",
+    welcomeHeader: "تلفزيون مريم الإسلامي للأطفال",
     loadingText: "جاري تحميل الفيديوهات لمريم...",
     loadMoreButton: "تحميل المزيد من الفيديوهات",
     loadingButton: "جاري التحميل...",

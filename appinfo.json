@@ -1,10 +1,15 @@
 {
-  "id": "com.first.app",
+  "id": "com.mariem.islamickidstv",
   "version": "1.0.0",
-  "vendor": "My Company",
+  "vendor": "Mariem's Apps",
   "type": "web",
   "main": "index.html",
-  "title": "first app",
+  "title": "Mariem's Islamic Kids TV",
   "icon": "icon.png",
-  "largeIcon": "largeIcon.png"
+  "largeIcon": "icon.png",
+  "description": "A kid-friendly Islamic content app designed for toddlers with a focus on Arabic and Islamic educational videos.",
+  "bgColor": "#ff69b4",
+  "iconColor": "#ff69b4",
+  "splashBackground": "splash.png",
+  "disableBackHistoryAPI": true
 }
