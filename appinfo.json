@@ -1,0 +1,10 @@
+{
+  "id": "com.first.app",
+  "version": "1.0.0",
+  "vendor": "My Company",
+  "type": "web",
+  "main": "index.html",
+  "title": "first app",
+  "icon": "icon.png",
+  "largeIcon": "largeIcon.png"
+}
