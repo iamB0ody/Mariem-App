@@ -11,7 +11,7 @@ webOS.service.request("luna://com.palm.systemservice", {
 })
 
 // YouTube API Key - Replace with your own API key
-const YOUTUBE_API_KEY = "AIzaSyBZWVWhRzZTKjRJXXNryryxzW6Pa2EjShs"
+const YOUTUBE_API_KEY = "AIzaSyApXJoOIc56haJSQBqgv8ugsOclznDIXU0"
 
 // Language settings
 let currentLanguage = "en" // Default language is English
@@ -299,15 +299,17 @@ function playVideo(videoId, videoTitle) {
   // Create a modal for the video player
   const modal = document.createElement("div")
   modal.className = "video-modal"
+  modal.id = "video-modal"
 
-  // Close button text based on language
-  const closeButtonText = currentLanguage === "en" ? "×" : "×"
+  // Get back button text based on language
+  const backButtonText = currentLanguage === "en" ? "Back" : "رجوع"
+  const closeButtonText = "×"
 
   modal.innerHTML = `
     <div class="video-modal-content">
       <div class="video-modal-header">
         <h3>${videoTitle}</h3>
-        <button class="close-button">${closeButtonText}</button>
+        <button class="close-button" id="close-video-button" tabindex="0">${closeButtonText}</button>
       </div>
       <div class="video-player">
         <iframe 
@@ -320,23 +322,81 @@ function playVideo(videoId, videoTitle) {
           allowfullscreen>
         </iframe>
       </div>
+      <div class="back-button-container">
+        <button class="back-button" id="back-video-button" tabindex="0">
+          <span class="back-button-icon">←</span>
+          <span>${backButtonText}</span>
+        </button>
+      </div>
     </div>
   `
 
   document.body.appendChild(modal)
 
+  // Store previous focus to restore it when modal closes
+  const previousFocus = document.activeElement
+
   // Add event listener to close button
-  const closeButton = modal.querySelector(".close-button")
-  closeButton.addEventListener("click", () => {
-    document.body.removeChild(modal)
-  })
+  const closeButton = document.getElementById("close-video-button")
+  closeButton.addEventListener("click", closeVideoModal)
+
+  // Add event listener to back button
+  const backButton = document.getElementById("back-video-button")
+  backButton.addEventListener("click", closeVideoModal)
+
+  // Set initial focus to the close button
+  setTimeout(() => {
+    closeButton.focus()
+
+    // Update focusable elements to include modal buttons
+    updateFocusableElements()
+
+    // Find the index of the close button in the focusable elements
+    const closeButtonIndex = focusableElements.findIndex((el) => el === closeButton)
+    if (closeButtonIndex !== -1) {
+      setFocus(closeButtonIndex)
+    }
+  }, 100)
 
   // Close modal when clicking outside the content
   modal.addEventListener("click", (event) => {
     if (event.target === modal) {
-      document.body.removeChild(modal)
+      closeVideoModal()
     }
   })
+
+  // Add keyboard event listener for Escape key
+  const handleKeyDown = (event) => {
+    if (event.key === "Escape" || event.keyCode === 27 || event.keyCode === 461) {
+      // ESC key or WebOS back button
+      closeVideoModal()
+      event.preventDefault()
+    }
+  }
+
+  document.addEventListener("keydown", handleKeyDown)
+
+  // Function to close the video modal
+  function closeVideoModal() {
+    document.body.removeChild(modal)
+    document.removeEventListener("keydown", handleKeyDown)
+
+    // Restore previous focus
+    if (previousFocus) {
+      setTimeout(() => {
+        previousFocus.focus()
+
+        // Update focusable elements after modal is closed
+        updateFocusableElements()
+
+        // Find the index of the previously focused element
+        const previousIndex = focusableElements.findIndex((el) => el === previousFocus)
+        if (previousIndex !== -1) {
+          setFocus(previousIndex)
+        }
+      }, 100)
+    }
+  }
 }
 
 // Predefined video data to use when API quota is exceeded
@@ -878,17 +938,20 @@ function selectCurrentElement() {
 // Handle back button
 function handleBackButton() {
   // If video modal is open, close it
-  const videoModal = document.querySelector(".video-modal")
+  const videoModal = document.getElementById("video-modal")
   if (videoModal) {
     document.body.removeChild(videoModal)
-    return
+    return true // Indicate that we handled the back button
   }
 
   // If we're in a category view, go back to home
   const categoryHeader = document.querySelector(".category-header")
   if (categoryHeader && categoryHeader.textContent !== translations[currentLanguage].welcomeHeader) {
     generateVideos()
+    return true // Indicate that we handled the back button
   }
+
+  return false // Indicate that we didn't handle the back button
 }
 
 // Initialize the app when the window loads
@@ -918,11 +981,16 @@ window.onload = function () {
   })
 
   // Register for WebOS TV specific events if available
-  if (window.webOS && window.webOS.platformBack) {
+  if (window.webOS) {
     // Override the platform back button
     window.webOS.platformBack = function () {
-      handleBackButton()
-      return true // Prevent default back action
+      // Let our handleBackButton function handle it
+      return handleBackButton()
+    }
+
+    // Set key handlers for WebOS TV
+    if (window.webOS.keyboardListeners) {
+      window.webOS.keyboardListeners.register()
     }
   }
 }
