@@ -13,6 +13,10 @@ SPDX-License-Identifier: Apache-2.0
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
+    <!-- WebOS TV specific meta tags -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Mariem's Pink Tube" />
   </head>
 
   <script src="webOSTVjs-1.2.10/webOSTV.js" charset="utf-8"></script>
@@ -20,6 +24,9 @@ SPDX-License-Identifier: Apache-2.0
   <script src="scripts.js" charset="utf-8"></script>
 
   <body>
+    <!-- Magic cursor for WebOS TV pointer -->
+    <div class="magic-cursor" id="magic-cursor"></div>
+
     <!-- Header -->
     <div class="header">
       <div class="logo-container">
@@ -27,7 +34,7 @@ SPDX-License-Identifier: Apache-2.0
       </div>
       <!-- Language toggle button -->
       <div class="language-toggle">
-        <button id="language-button" aria-label="Toggle language">
+        <button id="language-button" aria-label="Toggle language" tabindex="0">
           <span class="lang-text">EN</span>
           <span class="lang-icon">🔄</span>
           <span class="lang-text">عربي</span>
@@ -40,31 +47,31 @@ SPDX-License-Identifier: Apache-2.0
       <!-- Sidebar -->
       <div class="sidebar">
         <div class="sidebar-category">Mariem's Islamic Favorites</div>
-        <div class="sidebar-item">
+        <div class="sidebar-item" tabindex="0">
           <div class="sidebar-item-icon">🏠</div>
           <div class="sidebar-item-text">Home</div>
         </div>
-        <div class="sidebar-item">
+        <div class="sidebar-item" tabindex="0">
           <div class="sidebar-item-icon">💕</div>
           <div class="sidebar-item-text">Pink Islamic Songs</div>
         </div>
-        <div class="sidebar-item">
+        <div class="sidebar-item" tabindex="0">
           <div class="sidebar-item-icon">🎵</div>
           <div class="sidebar-item-text">Arabic Nursery Rhymes</div>
         </div>
-        <div class="sidebar-item">
+        <div class="sidebar-item" tabindex="0">
           <div class="sidebar-item-icon">📖</div>
           <div class="sidebar-item-text">Simple Quran</div>
         </div>
-        <div class="sidebar-item">
+        <div class="sidebar-item" tabindex="0">
           <div class="sidebar-item-icon">🔤</div>
           <div class="sidebar-item-text">Arabic Alphabet</div>
         </div>
-        <div class="sidebar-item">
+        <div class="sidebar-item" tabindex="0">
           <div class="sidebar-item-icon">🎬</div>
           <div class="sidebar-item-text">Islamic Cartoons</div>
         </div>
-        <div class="sidebar-item">
+        <div class="sidebar-item" tabindex="0">
           <div class="sidebar-item-icon">🐘</div>
           <div class="sidebar-item-text">Arabic Animals</div>
         </div>

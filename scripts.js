@@ -252,6 +252,7 @@ function getRandomAgeRange(category) {
 function createVideoCard(video, category) {
   const videoCard = document.createElement("div")
   videoCard.className = "video-card"
+  videoCard.setAttribute("tabindex", "0") // Make focusable for TV remote
 
   // Get first letter of channel name for the icon
   const channelInitial = video.channel.charAt(0)
@@ -279,6 +280,15 @@ function createVideoCard(video, category) {
   // Add click event to play the video
   videoCard.addEventListener("click", () => {
     playVideo(video.id, video.title)
+  })
+
+  // Add keydown event for TV remote (Enter key)
+  videoCard.addEventListener("keydown", (event) => {
+    if (event.keyCode === 13) {
+      // Enter key
+      playVideo(video.id, video.title)
+      event.preventDefault()
+    }
   })
 
   return videoCard
@@ -449,6 +459,7 @@ async function generateVideos() {
     const loadMoreButton = document.createElement("button")
     loadMoreButton.className = "load-more-button"
     loadMoreButton.textContent = translations[currentLanguage].loadMoreButton
+    loadMoreButton.setAttribute("tabindex", "0") // Make focusable for TV remote
     loadMoreContainer.appendChild(loadMoreButton)
     content.appendChild(loadMoreContainer)
 
@@ -630,8 +641,288 @@ async function searchVideosByCategory(category) {
   }
 }
 
+// WebOS TV Remote Navigation Support
+let currentFocusIndex = 0
+let focusableElements = []
+
+// Function to initialize TV remote navigation
+function initTVNavigation() {
+  // Get all focusable elements
+  updateFocusableElements()
+
+  // Set initial focus
+  if (focusableElements.length > 0) {
+    setFocus(0)
+  }
+
+  // Listen for remote control key events
+  document.addEventListener("keydown", handleKeyNavigation)
+}
+
+// Function to update the list of focusable elements
+function updateFocusableElements() {
+  // Get all interactive elements
+  focusableElements = Array.from(document.querySelectorAll(".sidebar-item, .video-card, .load-more-button, #language-button"))
+
+  // Make all elements programmatically focusable
+  focusableElements.forEach((el) => {
+    if (!el.hasAttribute("tabindex")) {
+      el.setAttribute("tabindex", "0")
+    }
+  })
+}
+
+// Function to set focus on an element by index
+function setFocus(index) {
+  // Remove focus from all elements
+  focusableElements.forEach((el) => {
+    el.classList.remove("tv-focus")
+  })
+
+  // Ensure index is within bounds
+  if (index < 0) index = focusableElements.length - 1
+  if (index >= focusableElements.length) index = 0
+
+  // Set current focus index
+  currentFocusIndex = index
+
+  // Focus the element
+  const element = focusableElements[currentFocusIndex]
+  if (element) {
+    element.classList.add("tv-focus")
+    element.focus()
+
+    // Ensure the element is visible by scrolling if needed
+    element.scrollIntoView({ behavior: "smooth", block: "center" })
+  }
+}
+
+// Handle key navigation for TV remote
+function handleKeyNavigation(event) {
+  // Update the list of focusable elements in case DOM has changed
+  updateFocusableElements()
+
+  switch (event.keyCode) {
+    // Up arrow
+    case 38:
+      navigateVertical(-1)
+      event.preventDefault()
+      break
+
+    // Down arrow
+    case 40:
+      navigateVertical(1)
+      event.preventDefault()
+      break
+
+    // Left arrow
+    case 37:
+      navigateHorizontal(-1)
+      event.preventDefault()
+      break
+
+    // Right arrow
+    case 39:
+      navigateHorizontal(1)
+      event.preventDefault()
+      break
+
+    // Enter/Select button
+    case 13:
+      selectCurrentElement()
+      event.preventDefault()
+      break
+
+    // Back button
+    case 461: // WebOS back button
+    case 27: // ESC key as fallback
+      handleBackButton()
+      event.preventDefault()
+      break
+  }
+}
+
+// Navigate vertically (up/down)
+function navigateVertical(direction) {
+  // Get current element position
+  const currentElement = focusableElements[currentFocusIndex]
+  const currentRect = currentElement.getBoundingClientRect()
+
+  // Find the next element in the vertical direction
+  let nextIndex = currentFocusIndex
+  let minDistance = Infinity
+
+  focusableElements.forEach((element, index) => {
+    if (index === currentFocusIndex) return
+
+    const rect = element.getBoundingClientRect()
+
+    // Check if element is above/below current element
+    const isAbove = rect.bottom < currentRect.top
+    const isBelow = rect.top > currentRect.bottom
+
+    if ((direction < 0 && isAbove) || (direction > 0 && isBelow)) {
+      // Calculate horizontal distance
+      const horizontalOverlap = Math.max(0, Math.min(currentRect.right, rect.right) - Math.max(currentRect.left, rect.left))
+
+      // Calculate vertical distance
+      const verticalDistance = direction < 0 ? currentRect.top - rect.bottom : rect.top - currentRect.bottom
+
+      // Prioritize elements with horizontal overlap
+      if (horizontalOverlap > 0 && verticalDistance < minDistance) {
+        minDistance = verticalDistance
+        nextIndex = index
+      }
+    }
+  })
+
+  // If no suitable element found, try to find any element in that direction
+  if (nextIndex === currentFocusIndex) {
+    focusableElements.forEach((element, index) => {
+      if (index === currentFocusIndex) return
+
+      const rect = element.getBoundingClientRect()
+
+      // Check if element is above/below current element
+      const isAbove = rect.bottom < currentRect.top
+      const isBelow = rect.top > currentRect.bottom
+
+      if ((direction < 0 && isAbove) || (direction > 0 && isBelow)) {
+        const distance = direction < 0 ? currentRect.top - rect.bottom : rect.top - currentRect.bottom
+
+        if (distance < minDistance) {
+          minDistance = distance
+          nextIndex = index
+        }
+      }
+    })
+  }
+
+  // Set focus to the next element
+  if (nextIndex !== currentFocusIndex) {
+    setFocus(nextIndex)
+  }
+}
+
+// Navigate horizontally (left/right)
+function navigateHorizontal(direction) {
+  // Get current element position
+  const currentElement = focusableElements[currentFocusIndex]
+  const currentRect = currentElement.getBoundingClientRect()
+
+  // Find the next element in the horizontal direction
+  let nextIndex = currentFocusIndex
+  let minDistance = Infinity
+
+  focusableElements.forEach((element, index) => {
+    if (index === currentFocusIndex) return
+
+    const rect = element.getBoundingClientRect()
+
+    // Check if element is to the left/right of current element
+    const isLeft = rect.right < currentRect.left
+    const isRight = rect.left > currentRect.right
+
+    if ((direction < 0 && isLeft) || (direction > 0 && isRight)) {
+      // Calculate vertical distance
+      const verticalOverlap = Math.max(0, Math.min(currentRect.bottom, rect.bottom) - Math.max(currentRect.top, rect.top))
+
+      // Calculate horizontal distance
+      const horizontalDistance = direction < 0 ? currentRect.left - rect.right : rect.left - currentRect.right
+
+      // Prioritize elements with vertical overlap
+      if (verticalOverlap > 0 && horizontalDistance < minDistance) {
+        minDistance = horizontalDistance
+        nextIndex = index
+      }
+    }
+  })
+
+  // If no suitable element found, try to find any element in that direction
+  if (nextIndex === currentFocusIndex) {
+    focusableElements.forEach((element, index) => {
+      if (index === currentFocusIndex) return
+
+      const rect = element.getBoundingClientRect()
+
+      // Check if element is to the left/right of current element
+      const isLeft = rect.right < currentRect.left
+      const isRight = rect.left > currentRect.right
+
+      if ((direction < 0 && isLeft) || (direction > 0 && isRight)) {
+        const distance = direction < 0 ? currentRect.left - rect.right : rect.left - currentRect.right
+
+        if (distance < minDistance) {
+          minDistance = distance
+          nextIndex = index
+        }
+      }
+    })
+  }
+
+  // Set focus to the next element
+  if (nextIndex !== currentFocusIndex) {
+    setFocus(nextIndex)
+  }
+}
+
+// Select the currently focused element
+function selectCurrentElement() {
+  const element = focusableElements[currentFocusIndex]
+  if (element) {
+    // Simulate a click event
+    element.click()
+  }
+}
+
+// Handle back button
+function handleBackButton() {
+  // If video modal is open, close it
+  const videoModal = document.querySelector(".video-modal")
+  if (videoModal) {
+    document.body.removeChild(videoModal)
+    return
+  }
+
+  // If we're in a category view, go back to home
+  const categoryHeader = document.querySelector(".category-header")
+  if (categoryHeader && categoryHeader.textContent !== translations[currentLanguage].welcomeHeader) {
+    generateVideos()
+  }
+}
+
 // Initialize the app when the window loads
 window.onload = function () {
   generateVideos()
   setupSidebarNavigation()
+
+  // Initialize TV navigation after a short delay to ensure DOM is ready
+  setTimeout(initTVNavigation, 1000)
+
+  // Listen for DOM changes to update focusable elements
+  const observer = new MutationObserver(function (mutations) {
+    updateFocusableElements()
+
+    // If current focus is lost (element removed), reset focus
+    if (!document.activeElement || !focusableElements.includes(document.activeElement)) {
+      if (focusableElements.length > 0) {
+        setFocus(0)
+      }
+    }
+  })
+
+  // Observe changes to the content area
+  observer.observe(document.querySelector(".content"), {
+    childList: true,
+    subtree: true,
+  })
+
+  // Register for WebOS TV specific events if available
+  if (window.webOS && window.webOS.platformBack) {
+    // Override the platform back button
+    window.webOS.platformBack = function () {
+      handleBackButton()
+      return true // Prevent default back action
+    }
+  }
 }

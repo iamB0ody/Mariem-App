@@ -148,6 +148,7 @@ body {
   border-radius: 0 25px 25px 0;
   margin-right: 12px;
   margin-bottom: 8px; /* Add space between items */
+  min-height: 50px;
 }
 
 .sidebar-item:hover {
@@ -207,6 +208,8 @@ body {
   box-shadow: 0 6px 12px rgba(255, 105, 180, 0.2);
   padding-bottom: 16px;
   border: 3px solid #ffb6c1; /* Light pink border */
+  margin-bottom: 10px;
+  min-height: 250px;
 }
 
 .video-card:hover {
@@ -475,6 +478,8 @@ body {
   cursor: pointer;
   box-shadow: 0 4px 8px rgba(255, 105, 180, 0.3);
   transition: all 0.3s ease;
+  min-height: 50px;
+  min-width: 200px;
 }
 
 .load-more-button:hover {
@@ -509,4 +514,54 @@ body {
   height: 4px;
   background: linear-gradient(to right, #ff69b4, #ffb6c1, #ff69b4);
   border-radius: 2px;
+}
+
+/* WebOS TV Remote Navigation Styles */
+:focus {
+  outline: 3px solid #ff1493;
+  outline-offset: 2px;
+  box-shadow: 0 0 8px rgba(255, 20, 147, 0.6);
+}
+
+/* Make sure all interactive elements have clear focus states */
+.sidebar-item:focus,
+.video-card:focus,
+.load-more-button:focus,
+#language-button:focus {
+  outline: 3px solid #ff1493;
+  outline-offset: 2px;
+  box-shadow: 0 0 8px rgba(255, 20, 147, 0.6);
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+}
+
+/* Add WebOS specific cursor styles */
+.magic-cursor {
+  position: fixed;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: rgba(255, 105, 180, 0.7);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  display: none;
+}
+
+/* Add a class to show which element is currently focused */
+.tv-focus {
+  position: relative;
+}
+
+.tv-focus::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  border: 3px solid #ff1493;
+  border-radius: 25px;
+  z-index: 10;
+  pointer-events: none;
 }
