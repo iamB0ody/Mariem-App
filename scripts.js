@@ -147,31 +147,31 @@ async function generateVideos() {
   // Clear any existing content
   content.innerHTML = ""
 
-  // Define categories and their search keywords for toddlers (2-3 years)
+  // Define categories and their search keywords for Islamic/Arabic content for toddlers
   const categories = [
     {
-      name: "Mariem's Favorite Colors (Pink)",
-      keywords: "pink colors for toddlers",
-    },
-    {
-      name: "Islamic Songs for Toddlers",
-      keywords: "islamic songs for toddlers",
+      name: "Mariem's Pink Islamic Songs",
+      keywords: "islamic songs for toddlers pink",
     },
     {
       name: "Arabic Nursery Rhymes",
-      keywords: "arabic nursery rhymes",
+      keywords: "arabic nursery rhymes for toddlers",
     },
     {
-      name: "Simple Counting & Numbers",
-      keywords: "counting numbers for toddlers",
+      name: "Simple Quran for Toddlers",
+      keywords: "quran for toddlers simple",
     },
     {
-      name: "Animal Sounds & Stories",
-      keywords: "animal sounds for toddlers",
+      name: "Arabic Alphabet & Letters",
+      keywords: "arabic alphabet for toddlers",
     },
     {
-      name: "Shapes & Colors",
-      keywords: "shapes and colors for toddlers",
+      name: "Islamic Cartoons in Arabic",
+      keywords: "islamic cartoons arabic for toddlers",
+    },
+    {
+      name: "Arabic Animal Names & Sounds",
+      keywords: "arabic animal names for toddlers",
     },
   ]
 
@@ -270,38 +270,31 @@ async function searchVideosByCategory(category) {
   // Map sidebar text to search keywords for a 2-year-old
   let searchQuery = ""
   switch (category) {
-    case "Islamic Stories":
-      searchQuery = "simple islamic stories for toddlers"
+    case "Home":
+      // Just reload the main page
+      content.innerHTML = ""
+      generateVideos()
+      return
+    case "Pink Islamic Songs":
+      searchQuery = "islamic songs for toddlers pink"
       break
-    case "Quran":
-      searchQuery = "quran for toddlers"
+    case "Arabic Nursery Rhymes":
+      searchQuery = "arabic nursery rhymes for toddlers"
       break
-    case "Arabic Cartoons":
-      searchQuery = "arabic cartoons for toddlers"
+    case "Simple Quran":
+      searchQuery = "quran for toddlers simple"
       break
-    case "Nasheeds":
-      searchQuery = "simple islamic nasheeds for toddlers"
+    case "Arabic Alphabet":
+      searchQuery = "arabic alphabet for toddlers"
       break
-    case "Learn Arabic":
-      searchQuery = "learn arabic for toddlers"
+    case "Islamic Cartoons":
+      searchQuery = "islamic cartoons arabic for toddlers"
       break
-    case "Islamic Values":
-      searchQuery = "simple islamic values for toddlers"
-      break
-    case "Toddlers (2-4)":
-      searchQuery = "islamic content for 2 year old"
-      break
-    case "Preschool (4-6)":
-      searchQuery = "islamic content for preschool"
-      break
-    case "Elementary (6-9)":
-      searchQuery = "islamic content for elementary children"
-      break
-    case "Pre-teens (9-12)":
-      searchQuery = "islamic content for preteens"
+    case "Arabic Animals":
+      searchQuery = "arabic animal names for toddlers"
       break
     default:
-      searchQuery = `simple ${category.toLowerCase()} for toddlers`
+      searchQuery = `arabic islamic ${category.toLowerCase()} for toddlers`
   }
 
   try {
