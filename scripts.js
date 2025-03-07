@@ -13,26 +13,60 @@ webOS.service.request("luna://com.palm.systemservice", {
 // YouTube API Key - Replace with your own API key
 const YOUTUBE_API_KEY = "AIzaSyBZWVWhRzZTKjRJXXNryryxzW6Pa2EjShs"
 
-// Function to fetch videos from YouTube API
+// Cache for storing API responses to reduce API calls
+const apiCache = {}
+const CACHE_EXPIRY = 24 * 60 * 60 * 1000 // 24 hours in milliseconds
+
+// Function to fetch videos from YouTube API with caching
 async function fetchYouTubeVideos(keyword, maxResults = 4) {
   try {
     // Add "toddler" to search queries to get age-appropriate content
     const searchQuery = `${keyword} toddler`
 
-    const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=${maxResults}&q=${encodeURIComponent(searchQuery)}&type=video&videoEmbeddable=true&key=${YOUTUBE_API_KEY}`)
+    // Check if we have a valid cached response
+    const cacheKey = `${searchQuery}_${maxResults}`
+    const cachedData = apiCache[cacheKey]
+
+    if (cachedData && Date.now() - cachedData.timestamp < CACHE_EXPIRY) {
+      console.log(`Using cached data for: ${searchQuery}`)
+      return cachedData.data
+    }
+
+    // If no cache or expired, make the API call
+    console.log(`Fetching from API: ${searchQuery}`)
+
+    // Use fields parameter to reduce response size and quota usage
+    const response = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?` +
+        `part=snippet` +
+        `&maxResults=${maxResults}` +
+        `&q=${encodeURIComponent(searchQuery)}` +
+        `&type=video` +
+        `&videoEmbeddable=true` +
+        `&fields=items(id/videoId,snippet(title,channelTitle,thumbnails/high/url,publishedAt))` +
+        `&key=${YOUTUBE_API_KEY}`
+    )
 
     if (!response.ok) {
       throw new Error("YouTube API request failed")
     }
 
     const data = await response.json()
-    return data.items.map((item) => ({
+    const processedData = data.items.map((item) => ({
       id: item.id.videoId,
       title: item.snippet.title,
       channel: item.snippet.channelTitle,
       thumbnail: item.snippet.thumbnails.high.url,
       publishedAt: formatPublishedDate(item.snippet.publishedAt),
     }))
+
+    // Cache the processed data
+    apiCache[cacheKey] = {
+      data: processedData,
+      timestamp: Date.now(),
+    }
+
+    return processedData
   } catch (error) {
     console.error("Error fetching YouTube videos:", error)
     return []
@@ -140,6 +174,57 @@ function playVideo(videoId, videoTitle) {
   })
 }
 
+// Predefined video data to use when API quota is exceeded
+const fallbackVideos = {
+  islamic: [
+    {
+      id: "8Yzqz_s8Xbc",
+      title: "Islamic Songs For Kids | Nasheed For Children",
+      channel: "Muslim Kids TV",
+      thumbnail: "https://i.ytimg.com/vi/8Yzqz_s8Xbc/hqdefault.jpg",
+      publishedAt: "2 years ago",
+    },
+    {
+      id: "GQ7XZGrY1cE",
+      title: "Arabic Alphabet Song for Kids",
+      channel: "Arabic For Kids",
+      thumbnail: "https://i.ytimg.com/vi/GQ7XZGrY1cE/hqdefault.jpg",
+      publishedAt: "3 years ago",
+    },
+  ],
+  quran: [
+    {
+      id: "JlA2_Oi-Xug",
+      title: "Quran for Kids: Learn Surah Al-Fatiha",
+      channel: "Quran For Kids",
+      thumbnail: "https://i.ytimg.com/vi/JlA2_Oi-Xug/hqdefault.jpg",
+      publishedAt: "1 year ago",
+    },
+  ],
+  arabic: [
+    {
+      id: "JZhvyZ0RH5c",
+      title: "Arabic Nursery Rhymes Collection",
+      channel: "Arabic Songs",
+      thumbnail: "https://i.ytimg.com/vi/JZhvyZ0RH5c/hqdefault.jpg",
+      publishedAt: "2 years ago",
+    },
+  ],
+}
+
+// Function to get fallback videos based on category
+function getFallbackVideos(category) {
+  let type = "islamic"
+
+  if (category.toLowerCase().includes("quran")) {
+    type = "quran"
+  } else if (category.toLowerCase().includes("arabic") || category.toLowerCase().includes("alphabet")) {
+    type = "arabic"
+  }
+
+  return fallbackVideos[type] || fallbackVideos["islamic"]
+}
+
 // Function to generate videos from YouTube API
 async function generateVideos() {
   const content = document.querySelector(".content")
@@ -175,8 +260,15 @@ async function generateVideos() {
     },
   ]
 
-  // Fetch and display videos for each category
-  for (const category of categories) {
+  // Load only 2 categories at a time to reduce API usage
+  const visibleCategories = categories.slice(0, 2)
+
+  // Add a "Load More" button container
+  const loadMoreContainer = document.createElement("div")
+  loadMoreContainer.className = "load-more-container"
+
+  // Function to load a category
+  async function loadCategory(category, index) {
     // Add category header
     const categoryHeader = document.createElement("h2")
     categoryHeader.className = "category-header"
@@ -190,8 +282,15 @@ async function generateVideos() {
     content.appendChild(loadingIndicator)
 
     try {
-      // Fetch videos from YouTube API
-      const videos = await fetchYouTubeVideos(category.keywords)
+      // Try to fetch videos from YouTube API
+      let videos = []
+
+      try {
+        videos = await fetchYouTubeVideos(category.keywords, 3) // Reduced from 4 to 3 videos per category
+      } catch (apiError) {
+        console.error("API error, using fallback data:", apiError)
+        videos = getFallbackVideos(category.name)
+      }
 
       // Remove loading indicator
       content.removeChild(loadingIndicator)
@@ -201,12 +300,13 @@ async function generateVideos() {
         noVideosMessage.className = "no-videos-message"
         noVideosMessage.textContent = "No videos found for this category."
         content.appendChild(noVideosMessage)
-        continue
+        return
       }
 
       // Create a container for the videos in this category
       const videosContainer = document.createElement("div")
       videosContainer.className = "videos-container"
+      videosContainer.dataset.category = index
       content.appendChild(videosContainer)
 
       // Add videos to the container
@@ -218,7 +318,9 @@ async function generateVideos() {
       console.error(`Error loading videos for ${category.name}:`, error)
 
       // Remove loading indicator
-      content.removeChild(loadingIndicator)
+      if (document.contains(loadingIndicator)) {
+        content.removeChild(loadingIndicator)
+      }
 
       // Show error message
       const errorMessage = document.createElement("div")
@@ -226,6 +328,38 @@ async function generateVideos() {
       errorMessage.textContent = "Failed to load videos. Please try again later."
       content.appendChild(errorMessage)
     }
+  }
+
+  // Load initial categories
+  for (let i = 0; i < visibleCategories.length; i++) {
+    await loadCategory(visibleCategories[i], i)
+  }
+
+  // Add "Load More" button if there are more categories
+  if (categories.length > visibleCategories.length) {
+    const loadMoreButton = document.createElement("button")
+    loadMoreButton.className = "load-more-button"
+    loadMoreButton.textContent = "Load More Categories"
+    loadMoreContainer.appendChild(loadMoreButton)
+    content.appendChild(loadMoreContainer)
+
+    let nextCategoryIndex = visibleCategories.length
+
+    loadMoreButton.addEventListener("click", async () => {
+      // Remove the button temporarily
+      loadMoreContainer.removeChild(loadMoreButton)
+
+      // Load next category
+      if (nextCategoryIndex < categories.length) {
+        await loadCategory(categories[nextCategoryIndex], nextCategoryIndex)
+        nextCategoryIndex++
+
+        // Add the button back if there are more categories
+        if (nextCategoryIndex < categories.length) {
+          loadMoreContainer.appendChild(loadMoreButton)
+        }
+      }
+    })
   }
 }
 
@@ -298,8 +432,15 @@ async function searchVideosByCategory(category) {
   }
 
   try {
-    // Fetch videos from YouTube API
-    const videos = await fetchYouTubeVideos(searchQuery)
+    // Try to fetch videos from YouTube API
+    let videos = []
+
+    try {
+      videos = await fetchYouTubeVideos(searchQuery, 6) // Load more videos for direct category search
+    } catch (apiError) {
+      console.error("API error, using fallback data:", apiError)
+      videos = getFallbackVideos(category)
+    }
 
     // Remove loading indicator
     content.removeChild(loadingIndicator)
