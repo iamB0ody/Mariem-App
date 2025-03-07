@@ -1,7 +1,7 @@
 # 💖 Mariem's Islamic Kids TV 💖
 
 <div align="center">
-  <img src="first-app/icon.svg" alt="Mariem's Islamic Kids TV Logo" width="200"/>
+  <img src="icon.svg" alt="Mariem's Islamic Kids TV Logo" width="200"/>
   <br>
   <h3>A kid-friendly Islamic content app designed for toddlers</h3>
   <p>Built with WebOS TV for LG Smart TVs</p>
@@ -69,7 +69,7 @@
 
 5. **Package and install the app**:
    ```bash
-   ares-package ./first-app
+   ares-package .
    ares-install --device myTV com.mariem.islamickidstv_1.0.0_all.ipk
    ares-launch --device myTV com.mariem.islamickidstv
    ```
@@ -88,7 +88,6 @@
 ### Project Structure
 
 ```
-first-app/
 ├── appinfo.json        # WebOS app manifest
 ├── icon.png            # App icon
 ├── index.html          # Main HTML file
