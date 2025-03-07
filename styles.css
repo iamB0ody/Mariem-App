@@ -90,7 +90,7 @@ body {
 
 .rtl .content {
   margin-left: 0;
-  margin-right: 240px;
+  margin-right: 300px;
 }
 
 .rtl .sidebar-item-text {
@@ -107,8 +107,8 @@ body {
 @media (max-width: 768px) {
   .rtl .content {
     margin-left: 0;
-    margin-right: 200px;
-    width: calc(100% - 200px);
+    margin-right: 260px;
+    width: calc(100% - 260px);
   }
 }
 
@@ -122,7 +122,7 @@ body {
 
 /* Sidebar styles */
 .sidebar {
-  width: 240px;
+  width: 300px;
   background-color: #ffcce0; /* Light pink sidebar */
   height: 100%;
   overflow-y: auto;
@@ -137,18 +137,19 @@ body {
   font-weight: bold;
   padding: 12px 24px;
   color: #ff1493; /* Deep pink color for category headers */
-  font-size: 18px;
+  font-size: 20px;
 }
 
 .sidebar-item {
   display: flex;
   align-items: center;
-  padding: 14px 24px; /* Larger padding for easier touch/click */
+  padding: 16px 24px;
   cursor: pointer;
   border-radius: 0 25px 25px 0;
   margin-right: 12px;
-  margin-bottom: 8px; /* Add space between items */
-  min-height: 50px;
+  margin-bottom: 10px;
+  min-height: 60px;
+  white-space: nowrap;
 }
 
 .sidebar-item:hover {
@@ -156,29 +157,33 @@ body {
 }
 
 .sidebar-item-icon {
-  width: 30px; /* Larger icons */
-  height: 30px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px; /* Larger emoji */
+  font-size: 24px;
   color: #ff1493; /* Deep pink color */
+  flex-shrink: 0;
 }
 
 .sidebar-item-text {
   margin-left: 24px;
-  font-size: 17px;
+  font-size: 18px;
   color: #ff1493; /* Deep pink color */
-  font-weight: 500;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Video grid styles */
 .content {
-  margin-left: 240px;
+  margin-left: 300px;
   padding: 24px;
   display: flex;
   flex-direction: column;
-  width: calc(100% - 240px);
+  width: calc(100% - 300px);
   overflow-y: auto;
   background-color: #fff0f5; /* Light pink background */
 }
@@ -442,12 +447,12 @@ body {
 
 @media (max-width: 768px) {
   .sidebar {
-    width: 200px;
+    width: 260px;
   }
 
   .content {
-    margin-left: 200px;
-    width: calc(100% - 200px);
+    margin-left: 260px;
+    width: calc(100% - 260px);
   }
 
   .videos-container {
