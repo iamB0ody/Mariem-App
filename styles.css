@@ -808,3 +808,142 @@ body {
 .rtl .splash-message {
   direction: rtl;
 }
+
+/* Close App Button */
+.close-app-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
+  border: 2px solid #ffffff;
+  color: white;
+  font-size: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 100;
+}
+
+.close-app-button:hover {
+  background-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.1);
+}
+
+.close-app-button.tv-focus {
+  background-color: #ffffff;
+  color: #ff69b4;
+  transform: scale(1.1);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+}
+
+.close-app-button.tv-focus::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  border-radius: 50%;
+  border: 2px solid white;
+  animation: borderPulse 1.5s infinite;
+}
+
+/* RTL support for close button */
+.rtl .close-app-button {
+  right: auto;
+  left: 20px;
+}
+
+/* Exit confirmation modal */
+.exit-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.exit-modal-content {
+  background-color: white;
+  border-radius: 20px;
+  padding: 30px;
+  width: 400px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  border: 3px solid #ff69b4;
+}
+
+.exit-modal-title {
+  color: #ff69b4;
+  font-size: 24px;
+  margin-bottom: 20px;
+  font-weight: bold;
+  font-family: "Cairo", sans-serif;
+}
+
+.exit-modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 30px;
+}
+
+.exit-modal-button {
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  min-width: 120px;
+  font-family: "Cairo", sans-serif;
+  transition: all 0.3s ease;
+}
+
+.exit-yes-button {
+  background-color: #ff69b4;
+  color: white;
+  border: none;
+}
+
+.exit-no-button {
+  background-color: white;
+  color: #ff69b4;
+  border: 2px solid #ff69b4;
+}
+
+.exit-modal-button:hover,
+.exit-modal-button.tv-focus {
+  transform: scale(1.05);
+}
+
+.exit-yes-button:hover,
+.exit-yes-button.tv-focus {
+  background-color: #ff4aa0;
+}
+
+.exit-no-button:hover,
+.exit-no-button.tv-focus {
+  background-color: #fff0f6;
+}
+
+.exit-modal-button.tv-focus::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  border-radius: 25px;
+  border: 2px solid white;
+  animation: borderPulse 1.5s infinite;
+}

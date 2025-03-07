@@ -968,6 +968,13 @@ function selectCurrentElement() {
 
 // Handle back button
 function handleBackButton() {
+  // If exit modal is open, close it
+  const exitModal = document.getElementById("exit-modal")
+  if (exitModal) {
+    closeExitModal()
+    return true // Indicate that we handled the back button
+  }
+
   // If video modal is open, close it
   const videoModal = document.getElementById("video-modal")
   if (videoModal) {
@@ -991,9 +998,9 @@ function handleBackButton() {
     return true // Indicate that we handled the back button
   }
 
-  // If we're already at the home screen, let the system handle the back button
-  // This will typically show the exit confirmation dialog on WebOS TV
-  return false
+  // If we're already at the home screen, show exit confirmation
+  showExitConfirmation()
+  return true // We're handling the back button with our exit confirmation
 }
 
 // Initialize the app when the window loads
@@ -1032,6 +1039,12 @@ window.onload = function () {
   // Initialize the rest of the app
   generateVideos()
   setupSidebarNavigation()
+
+  // Set up close button event listener
+  const closeButton = document.getElementById("close-app-button")
+  if (closeButton) {
+    closeButton.addEventListener("click", showExitConfirmation)
+  }
 
   // Initialize TV navigation after a short delay to ensure DOM is ready
   setTimeout(initTVNavigation, 1000)
@@ -1078,5 +1091,120 @@ window.onload = function () {
         handleBackButton()
       }
     })
+  }
+}
+
+// Function to show exit confirmation modal
+function showExitConfirmation() {
+  console.log("Showing exit confirmation")
+
+  // Create exit modal
+  const exitModal = document.createElement("div")
+  exitModal.className = "exit-modal"
+  exitModal.id = "exit-modal"
+
+  // Get text based on current language
+  const exitTitle = currentLanguage === "en" ? "Exit Application?" : "الخروج من التطبيق؟"
+  const yesText = currentLanguage === "en" ? "Yes" : "نعم"
+  const noText = currentLanguage === "en" ? "No" : "لا"
+
+  exitModal.innerHTML = `
+    <div class="exit-modal-content">
+      <div class="exit-modal-title">${exitTitle}</div>
+      <div class="exit-modal-buttons">
+        <button class="exit-modal-button exit-no-button" id="exit-no-button" tabindex="0">${noText}</button>
+        <button class="exit-modal-button exit-yes-button" id="exit-yes-button" tabindex="0">${yesText}</button>
+      </div>
+    </div>
+  `
+
+  document.body.appendChild(exitModal)
+
+  // Add event listeners to buttons
+  const yesButton = document.getElementById("exit-yes-button")
+  const noButton = document.getElementById("exit-no-button")
+
+  yesButton.addEventListener("click", closeApplication)
+  noButton.addEventListener("click", closeExitModal)
+
+  // Set initial focus to "No" button (safer default)
+  setTimeout(() => {
+    noButton.focus()
+
+    // Update focusable elements to include modal buttons
+    updateFocusableElements()
+
+    // Find the index of the no button in the focusable elements
+    const noButtonIndex = focusableElements.findIndex((el) => el === noButton)
+    if (noButtonIndex !== -1) {
+      setFocus(noButtonIndex)
+    }
+  }, 100)
+
+  // Close modal when clicking outside the content
+  exitModal.addEventListener("click", (event) => {
+    if (event.target === exitModal) {
+      closeExitModal()
+    }
+  })
+
+  // Add keyboard event listener for Escape key
+  const handleKeyDown = (event) => {
+    if (event.key === "Escape" || event.keyCode === 27 || event.keyCode === 461) {
+      // ESC key or WebOS back button
+      closeExitModal()
+      event.preventDefault()
+      event.stopPropagation()
+    }
+  }
+
+  document.addEventListener("keydown", handleKeyDown)
+
+  // Store the keydown handler to remove it later
+  exitModal.handleKeyDown = handleKeyDown
+}
+
+// Function to close the exit confirmation modal
+function closeExitModal() {
+  const exitModal = document.getElementById("exit-modal")
+  if (exitModal) {
+    // Remove the keydown event listener
+    if (exitModal.handleKeyDown) {
+      document.removeEventListener("keydown", exitModal.handleKeyDown)
+    }
+
+    // Remove the modal
+    document.body.removeChild(exitModal)
+
+    // Update focusable elements
+    updateFocusableElements()
+  }
+}
+
+// Function to close the application
+function closeApplication() {
+  console.log("Closing application")
+
+  // For WebOS TV, use the system API to close the app
+  if (window.webOS) {
+    window.webOS.platformBack()
+    // Force close if needed
+    setTimeout(() => {
+      if (window.webOS.systemInfo) {
+        window.webOS.service.request("luna://com.webos.applicationManager", {
+          method: "close",
+          parameters: { id: webOS.fetchAppId() },
+          onSuccess: function () {
+            console.log("App closed successfully")
+          },
+          onFailure: function (inError) {
+            console.log("Failed to close app:", inError)
+          },
+        })
+      }
+    }, 500)
+  } else {
+    // For web browsers, just show a message
+    alert("App would close now if running on WebOS TV")
   }
 }
