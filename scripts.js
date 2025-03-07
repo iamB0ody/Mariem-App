@@ -232,134 +232,131 @@ async function generateVideos() {
   // Clear any existing content
   content.innerHTML = ""
 
-  // Define categories and their search keywords for Islamic/Arabic content for toddlers
-  const categories = [
-    {
-      name: "Mariem's Pink Islamic Songs",
-      keywords: "islamic songs for toddlers pink",
-    },
-    {
-      name: "Arabic Nursery Rhymes",
-      keywords: "arabic nursery rhymes for toddlers",
-    },
-    {
-      name: "Simple Quran for Toddlers",
-      keywords: "quran for toddlers simple",
-    },
-    {
-      name: "Arabic Alphabet & Letters",
-      keywords: "arabic alphabet for toddlers",
-    },
-    {
-      name: "Islamic Cartoons in Arabic",
-      keywords: "islamic cartoons arabic for toddlers",
-    },
-    {
-      name: "Arabic Animal Names & Sounds",
-      keywords: "arabic animal names for toddlers",
-    },
-  ]
+  // Add welcome header for home page
+  const welcomeHeader = document.createElement("h1")
+  welcomeHeader.className = "welcome-header"
+  welcomeHeader.textContent = "Mariem's Favorite Videos"
+  content.appendChild(welcomeHeader)
 
-  // Load only 2 categories at a time to reduce API usage
-  const visibleCategories = categories.slice(0, 2)
+  // Show loading indicator
+  const loadingIndicator = document.createElement("div")
+  loadingIndicator.className = "loading-indicator"
+  loadingIndicator.textContent = "Loading videos for Mariem..."
+  content.appendChild(loadingIndicator)
 
-  // Add a "Load More" button container
-  const loadMoreContainer = document.createElement("div")
-  loadMoreContainer.className = "load-more-container"
+  // Define all categories keywords for search
+  const allCategories = ["islamic songs for toddlers pink", "arabic nursery rhymes for toddlers", "quran for toddlers simple", "arabic alphabet for toddlers", "islamic cartoons arabic for toddlers", "arabic animal names for toddlers"]
 
-  // Function to load a category
-  async function loadCategory(category, index) {
-    // Add category header
-    const categoryHeader = document.createElement("h2")
-    categoryHeader.className = "category-header"
-    categoryHeader.textContent = category.name
-    content.appendChild(categoryHeader)
+  // Create a combined search query with OR operator
+  // This will get a mix of videos from different categories
+  const combinedQuery = "toddler (islamic OR arabic) (songs OR nursery OR quran OR alphabet OR cartoon)"
 
-    // Show loading indicator
-    const loadingIndicator = document.createElement("div")
-    loadingIndicator.className = "loading-indicator"
-    loadingIndicator.textContent = "Loading videos for Mariem..."
-    content.appendChild(loadingIndicator)
+  try {
+    // Try to fetch mixed videos with a single API call
+    let videos = []
 
     try {
-      // Try to fetch videos from YouTube API
-      let videos = []
+      // Fetch 8 videos initially
+      videos = await fetchYouTubeVideos(combinedQuery, 8)
+    } catch (apiError) {
+      console.error("API error, using fallback data:", apiError)
 
-      try {
-        videos = await fetchYouTubeVideos(category.keywords, 3) // Reduced from 4 to 3 videos per category
-      } catch (apiError) {
-        console.error("API error, using fallback data:", apiError)
-        videos = getFallbackVideos(category.name)
-      }
-
-      // Remove loading indicator
-      content.removeChild(loadingIndicator)
-
-      if (videos.length === 0) {
-        const noVideosMessage = document.createElement("div")
-        noVideosMessage.className = "no-videos-message"
-        noVideosMessage.textContent = "No videos found for this category."
-        content.appendChild(noVideosMessage)
-        return
-      }
-
-      // Create a container for the videos in this category
-      const videosContainer = document.createElement("div")
-      videosContainer.className = "videos-container"
-      videosContainer.dataset.category = index
-      content.appendChild(videosContainer)
-
-      // Add videos to the container
-      videos.forEach((video) => {
-        const videoCard = createVideoCard(video, category.name)
-        videosContainer.appendChild(videoCard)
-      })
-    } catch (error) {
-      console.error(`Error loading videos for ${category.name}:`, error)
-
-      // Remove loading indicator
-      if (document.contains(loadingIndicator)) {
-        content.removeChild(loadingIndicator)
-      }
-
-      // Show error message
-      const errorMessage = document.createElement("div")
-      errorMessage.className = "error-message"
-      errorMessage.textContent = "Failed to load videos. Please try again later."
-      content.appendChild(errorMessage)
+      // Get mixed fallback videos
+      videos = [...getFallbackVideos("islamic"), ...getFallbackVideos("arabic"), ...getFallbackVideos("quran")].slice(0, 8) // Limit to 8 videos
     }
-  }
 
-  // Load initial categories
-  for (let i = 0; i < visibleCategories.length; i++) {
-    await loadCategory(visibleCategories[i], i)
-  }
+    // Remove loading indicator
+    content.removeChild(loadingIndicator)
 
-  // Add "Load More" button if there are more categories
-  if (categories.length > visibleCategories.length) {
+    if (videos.length === 0) {
+      const noVideosMessage = document.createElement("div")
+      noVideosMessage.className = "no-videos-message"
+      noVideosMessage.textContent = "No videos found. Please try again later."
+      content.appendChild(noVideosMessage)
+      return
+    }
+
+    // Create a container for the videos
+    const videosContainer = document.createElement("div")
+    videosContainer.className = "videos-container"
+    content.appendChild(videosContainer)
+
+    // Add videos to the container
+    videos.forEach((video) => {
+      const videoCard = createVideoCard(video, "Mixed")
+      videosContainer.appendChild(videoCard)
+    })
+
+    // Add "Load More Videos" button
+    const loadMoreContainer = document.createElement("div")
+    loadMoreContainer.className = "load-more-container"
+
     const loadMoreButton = document.createElement("button")
     loadMoreButton.className = "load-more-button"
-    loadMoreButton.textContent = "Load More Categories"
+    loadMoreButton.textContent = "Load More Videos"
     loadMoreContainer.appendChild(loadMoreButton)
     content.appendChild(loadMoreContainer)
 
-    let nextCategoryIndex = visibleCategories.length
+    // Track which category to load next
+    let currentCategoryIndex = 0
+    let videosLoaded = videos.length
+    const maxVideos = 24 // Maximum videos to load
 
     loadMoreButton.addEventListener("click", async () => {
-      // Remove the button temporarily
-      loadMoreContainer.removeChild(loadMoreButton)
+      // Show loading state
+      loadMoreButton.textContent = "Loading..."
+      loadMoreButton.disabled = true
 
-      // Load next category
-      if (nextCategoryIndex < categories.length) {
-        await loadCategory(categories[nextCategoryIndex], nextCategoryIndex)
-        nextCategoryIndex++
+      try {
+        // Get the next category to load
+        const categoryQuery = allCategories[currentCategoryIndex]
+        currentCategoryIndex = (currentCategoryIndex + 1) % allCategories.length
 
-        // Add the button back if there are more categories
-        if (nextCategoryIndex < categories.length) {
-          loadMoreContainer.appendChild(loadMoreButton)
+        // Fetch 4 more videos from this category
+        let moreVideos = []
+        try {
+          moreVideos = await fetchYouTubeVideos(categoryQuery, 4)
+        } catch (apiError) {
+          console.error("API error when loading more videos:", apiError)
+          moreVideos = getFallbackVideos(categoryQuery)
         }
+
+        // Add new videos to the container
+        moreVideos.forEach((video) => {
+          const videoCard = createVideoCard(video, "Mixed")
+          videosContainer.appendChild(videoCard)
+        })
+
+        // Update count of loaded videos
+        videosLoaded += moreVideos.length
+
+        // Reset button state
+        loadMoreButton.textContent = "Load More Videos"
+        loadMoreButton.disabled = false
+
+        // Hide button if we've reached the maximum
+        if (videosLoaded >= maxVideos) {
+          loadMoreContainer.style.display = "none"
+        }
+      } catch (error) {
+        console.error("Error loading more videos:", error)
+        loadMoreButton.textContent = "Try Again"
+        loadMoreButton.disabled = false
       }
     })
+  } catch (error) {
+    console.error("Error loading home page videos:", error)
+
+    // Remove loading indicator if it exists
+    if (document.contains(loadingIndicator)) {
+      content.removeChild(loadingIndicator)
+    }
+
+    // Show error message
+    const errorMessage = document.createElement("div")
+    errorMessage.className = "error-message"
+    errorMessage.textContent = "Failed to load videos. Please try again later."
+    content.appendChild(errorMessage)
   }
 }
 

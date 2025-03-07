@@ -417,3 +417,26 @@ body {
   transform: translateY(1px);
   box-shadow: 0 2px 4px rgba(255, 105, 180, 0.3);
 }
+
+.welcome-header {
+  text-align: center;
+  margin: 10px 0 30px;
+  color: #ff1493;
+  font-size: 32px;
+  font-weight: bold;
+  text-shadow: 1px 1px 3px rgba(255, 105, 180, 0.3);
+  position: relative;
+  padding-bottom: 15px;
+}
+
+.welcome-header::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 150px;
+  height: 4px;
+  background: linear-gradient(to right, #ff69b4, #ffb6c1, #ff69b4);
+  border-radius: 2px;
+}
