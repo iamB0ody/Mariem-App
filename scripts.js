@@ -16,7 +16,10 @@ const YOUTUBE_API_KEY = "AIzaSyBZWVWhRzZTKjRJXXNryryxzW6Pa2EjShs"
 // Function to fetch videos from YouTube API
 async function fetchYouTubeVideos(keyword, maxResults = 4) {
   try {
-    const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=${maxResults}&q=${encodeURIComponent(keyword)}&type=video&videoEmbeddable=true&key=${YOUTUBE_API_KEY}`)
+    // Add "toddler" to search queries to get age-appropriate content
+    const searchQuery = `${keyword} toddler`
+
+    const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=${maxResults}&q=${encodeURIComponent(searchQuery)}&type=video&videoEmbeddable=true&key=${YOUTUBE_API_KEY}`)
 
     if (!response.ok) {
       throw new Error("YouTube API request failed")
@@ -57,23 +60,10 @@ function formatPublishedDate(publishedDate) {
   }
 }
 
-// Function to get random age range appropriate for the content
+// Function to get age range appropriate for the content
 function getRandomAgeRange(category) {
-  const ageRanges = {
-    educational: ["3-5", "4-7", "5-8", "6-10"],
-    cartoons: ["3-7", "4-8", "5-10", "6-12"],
-    science: ["5-9", "6-10", "7-12", "8-13"],
-  }
-
-  let type = "educational"
-  if (category.toLowerCase().includes("cartoon") || category.toLowerCase().includes("fun")) {
-    type = "cartoons"
-  } else if (category.toLowerCase().includes("science")) {
-    type = "science"
-  }
-
-  const ranges = ageRanges[type]
-  return ranges[Math.floor(Math.random() * ranges.length)]
+  // Since Mariem is 2 years and 5 months, focus on 2-4 age range
+  return "2-4"
 }
 
 // Function to create a video card element
@@ -84,7 +74,7 @@ function createVideoCard(video, category) {
   // Get first letter of channel name for the icon
   const channelInitial = video.channel.charAt(0)
 
-  // Get random age range based on category
+  // Get age range
   const ageRange = getRandomAgeRange(category)
 
   videoCard.innerHTML = `
@@ -157,19 +147,31 @@ async function generateVideos() {
   // Clear any existing content
   content.innerHTML = ""
 
-  // Define categories and their search keywords
+  // Define categories and their search keywords for toddlers (2-3 years)
   const categories = [
     {
-      name: "Educational Videos for Kids",
-      keywords: "educational videos for children",
+      name: "Mariem's Favorite Colors (Pink)",
+      keywords: "pink colors for toddlers",
     },
     {
-      name: "Fun Cartoons",
-      keywords: "kids cartoons animated",
+      name: "Islamic Songs for Toddlers",
+      keywords: "islamic songs for toddlers",
     },
     {
-      name: "Science for Kids",
-      keywords: "science experiments for children",
+      name: "Arabic Nursery Rhymes",
+      keywords: "arabic nursery rhymes",
+    },
+    {
+      name: "Simple Counting & Numbers",
+      keywords: "counting numbers for toddlers",
+    },
+    {
+      name: "Animal Sounds & Stories",
+      keywords: "animal sounds for toddlers",
+    },
+    {
+      name: "Shapes & Colors",
+      keywords: "shapes and colors for toddlers",
     },
   ]
 
@@ -184,7 +186,7 @@ async function generateVideos() {
     // Show loading indicator
     const loadingIndicator = document.createElement("div")
     loadingIndicator.className = "loading-indicator"
-    loadingIndicator.textContent = "Loading videos..."
+    loadingIndicator.textContent = "Loading videos for Mariem..."
     content.appendChild(loadingIndicator)
 
     try {
@@ -262,12 +264,49 @@ async function searchVideosByCategory(category) {
   // Show loading indicator
   const loadingIndicator = document.createElement("div")
   loadingIndicator.className = "loading-indicator"
-  loadingIndicator.textContent = "Loading videos..."
+  loadingIndicator.textContent = "Loading videos for Mariem..."
   content.appendChild(loadingIndicator)
+
+  // Map sidebar text to search keywords for a 2-year-old
+  let searchQuery = ""
+  switch (category) {
+    case "Islamic Stories":
+      searchQuery = "simple islamic stories for toddlers"
+      break
+    case "Quran":
+      searchQuery = "quran for toddlers"
+      break
+    case "Arabic Cartoons":
+      searchQuery = "arabic cartoons for toddlers"
+      break
+    case "Nasheeds":
+      searchQuery = "simple islamic nasheeds for toddlers"
+      break
+    case "Learn Arabic":
+      searchQuery = "learn arabic for toddlers"
+      break
+    case "Islamic Values":
+      searchQuery = "simple islamic values for toddlers"
+      break
+    case "Toddlers (2-4)":
+      searchQuery = "islamic content for 2 year old"
+      break
+    case "Preschool (4-6)":
+      searchQuery = "islamic content for preschool"
+      break
+    case "Elementary (6-9)":
+      searchQuery = "islamic content for elementary children"
+      break
+    case "Pre-teens (9-12)":
+      searchQuery = "islamic content for preteens"
+      break
+    default:
+      searchQuery = `simple ${category.toLowerCase()} for toddlers`
+  }
 
   try {
     // Fetch videos from YouTube API
-    const videos = await fetchYouTubeVideos(`kids ${category.toLowerCase()}`)
+    const videos = await fetchYouTubeVideos(searchQuery)
 
     // Remove loading indicator
     content.removeChild(loadingIndicator)
