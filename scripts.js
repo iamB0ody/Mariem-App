@@ -998,6 +998,38 @@ function handleBackButton() {
 
 // Initialize the app when the window loads
 window.onload = function () {
+  // Show splash screen for 2.5 seconds
+  const splashScreen = document.getElementById("splash-screen")
+
+  // Check if this is the first time opening the app in this session
+  const hasSeenSplash = sessionStorage.getItem("hasSeenSplash")
+
+  if (!hasSeenSplash) {
+    // First time opening, show splash screen
+    console.log("Showing welcome splash screen")
+
+    // Hide splash screen after 2.5 seconds
+    setTimeout(() => {
+      splashScreen.classList.add("fade-out")
+
+      // Remove splash screen from DOM after fade animation completes
+      setTimeout(() => {
+        if (splashScreen.parentNode) {
+          splashScreen.parentNode.removeChild(splashScreen)
+        }
+      }, 500)
+
+      // Set session storage to remember we've shown the splash
+      sessionStorage.setItem("hasSeenSplash", "true")
+    }, 2500)
+  } else {
+    // Not first time, remove splash screen immediately
+    if (splashScreen.parentNode) {
+      splashScreen.parentNode.removeChild(splashScreen)
+    }
+  }
+
+  // Initialize the rest of the app
   generateVideos()
   setupSidebarNavigation()
 
