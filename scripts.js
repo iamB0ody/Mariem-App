@@ -371,6 +371,7 @@ function playVideo(videoId, videoTitle) {
       // ESC key or WebOS back button
       closeVideoModal()
       event.preventDefault()
+      event.stopPropagation()
     }
   }
 
@@ -378,24 +379,54 @@ function playVideo(videoId, videoTitle) {
 
   // Function to close the video modal
   function closeVideoModal() {
-    document.body.removeChild(modal)
-    document.removeEventListener("keydown", handleKeyDown)
+    console.log("Closing video modal")
+    const modal = document.getElementById("video-modal")
+    if (document.body.contains(modal)) {
+      document.body.removeChild(modal)
+      document.removeEventListener("keydown", handleKeyDown)
 
-    // Restore previous focus
-    if (previousFocus) {
-      setTimeout(() => {
-        previousFocus.focus()
+      // Restore previous focus
+      if (previousFocus) {
+        setTimeout(() => {
+          previousFocus.focus()
 
-        // Update focusable elements after modal is closed
-        updateFocusableElements()
+          // Update focusable elements after modal is closed
+          updateFocusableElements()
 
-        // Find the index of the previously focused element
-        const previousIndex = focusableElements.findIndex((el) => el === previousFocus)
-        if (previousIndex !== -1) {
-          setFocus(previousIndex)
-        }
-      }, 100)
+          // Find the index of the previously focused element
+          const previousIndex = focusableElements.findIndex((el) => el === previousFocus)
+          if (previousIndex !== -1) {
+            setFocus(previousIndex)
+          }
+        }, 100)
+      }
     }
+  }
+
+  // Override WebOS back button while modal is open
+  if (window.webOS) {
+    const originalBackFunction = window.webOS.platformBack
+    window.webOS.platformBack = function () {
+      closeVideoModal()
+      return true // Prevent default back action
+    }
+
+    // Restore original back function when modal is closed
+    const modalCloseObserver = new MutationObserver(function (mutations) {
+      mutations.forEach(function (mutation) {
+        if (mutation.type === "childList" && mutation.removedNodes.length > 0) {
+          for (let i = 0; i < mutation.removedNodes.length; i++) {
+            if (mutation.removedNodes[i] === modal) {
+              window.webOS.platformBack = originalBackFunction
+              modalCloseObserver.disconnect()
+              break
+            }
+          }
+        }
+      })
+    })
+
+    modalCloseObserver.observe(document.body, { childList: true })
   }
 }
 
@@ -940,7 +971,16 @@ function handleBackButton() {
   // If video modal is open, close it
   const videoModal = document.getElementById("video-modal")
   if (videoModal) {
-    document.body.removeChild(videoModal)
+    // Find and call the close button's click event to properly close the modal
+    const closeButton = document.getElementById("close-video-button")
+    if (closeButton) {
+      closeButton.click()
+    } else {
+      // Fallback if close button not found
+      if (document.body.contains(videoModal)) {
+        document.body.removeChild(videoModal)
+      }
+    }
     return true // Indicate that we handled the back button
   }
 
@@ -951,7 +991,9 @@ function handleBackButton() {
     return true // Indicate that we handled the back button
   }
 
-  return false // Indicate that we didn't handle the back button
+  // If we're already at the home screen, let the system handle the back button
+  // This will typically show the exit confirmation dialog on WebOS TV
+  return false
 }
 
 // Initialize the app when the window loads
@@ -982,8 +1024,11 @@ window.onload = function () {
 
   // Register for WebOS TV specific events if available
   if (window.webOS) {
+    console.log("WebOS detected, setting up platform back button handler")
+
     // Override the platform back button
     window.webOS.platformBack = function () {
+      console.log("WebOS back button pressed")
       // Let our handleBackButton function handle it
       return handleBackButton()
     }
@@ -992,5 +1037,14 @@ window.onload = function () {
     if (window.webOS.keyboardListeners) {
       window.webOS.keyboardListeners.register()
     }
+
+    // Register for back key events
+    document.addEventListener("keydown", function (e) {
+      if (e.keyCode === 461 || e.keyCode === 27) {
+        // WebOS back key or ESC
+        e.preventDefault()
+        handleBackButton()
+      }
+    })
   }
 }
