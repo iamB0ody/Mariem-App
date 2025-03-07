@@ -539,50 +539,110 @@ body {
   }
 }
 
-/* Enhanced focus styles for interactive elements */
+/* Remove browser default focus styles */
 .sidebar-item:focus,
+.video-card:focus,
+.load-more-button:focus,
 #language-button:focus {
   outline: none;
-  background-color: #ffb6c1;
-  box-shadow: 0 0 0 3px rgba(255, 20, 147, 0.6);
-  transform: translateX(5px) scale(1.03);
-  transition: all 0.3s ease;
+  /* No additional styles here - all focus styling will be handled by .tv-focus */
+}
+
+/* Magic cursor for WebOS TV pointer */
+.magic-cursor {
+  position: fixed;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: rgba(255, 105, 180, 0.7);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  display: none;
+}
+
+/* TV focus indicator with animated border - THE ONLY FOCUS STYLE */
+.tv-focus {
   position: relative;
   z-index: 10;
 }
 
-.video-card:focus {
-  outline: none;
+/* Different focus styles for different element types */
+.sidebar-item.tv-focus {
+  background-color: #ffb6c1;
+  transform: translateX(5px) scale(1.03);
+  transition: all 0.3s ease;
+}
+
+.sidebar-item.tv-focus::before {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border: 3px solid #ff1493;
+  border-radius: 25px;
+  z-index: 5;
+  pointer-events: none;
+  animation: borderPulse 1.5s infinite ease-in-out;
+}
+
+.sidebar-item.tv-focus .sidebar-item-text {
+  font-weight: 700;
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+}
+
+.sidebar-item.tv-focus .sidebar-item-icon {
+  transform: scale(1.2);
+  transition: transform 0.2s ease;
+}
+
+.video-card.tv-focus {
   transform: translateY(-8px) scale(1.05);
   box-shadow: 0 12px 20px rgba(255, 105, 180, 0.4);
   transition: all 0.3s ease;
-  animation: focusPulse 2s infinite;
-  position: relative;
-  z-index: 10;
 }
 
-.load-more-button:focus {
-  outline: none;
+.video-card.tv-focus::before {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border: 3px solid #ff1493;
+  border-radius: 20px;
+  z-index: 5;
+  pointer-events: none;
+  animation: borderPulse 1.5s infinite ease-in-out;
+}
+
+.video-card.tv-focus .thumbnail {
+  transform: scale(1.03);
+  transition: transform 0.3s ease;
+}
+
+.video-card.tv-focus .video-title {
+  color: #ff1493;
+  transition: color 0.3s ease;
+}
+
+.load-more-button.tv-focus {
   transform: translateY(-3px) scale(1.05);
   box-shadow: 0 8px 15px rgba(255, 105, 180, 0.5);
   background-color: #ff1493;
   transition: all 0.3s ease;
-  position: relative;
-  z-index: 10;
 }
 
-/* TV focus indicator with animated border */
-.tv-focus {
-  position: relative;
-}
-
-.tv-focus::before {
+.load-more-button.tv-focus::before {
   content: "";
   position: absolute;
-  top: -5px;
-  left: -5px;
-  right: -5px;
-  bottom: -5px;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
   border: 3px solid #ff1493;
   border-radius: 25px;
   z-index: 5;
@@ -603,31 +663,4 @@ body {
     border-color: #ff1493;
     box-shadow: 0 0 10px rgba(255, 20, 147, 0.6);
   }
-}
-
-/* Special focus style for sidebar items */
-.sidebar-item.tv-focus {
-  background-color: #ffb6c1;
-}
-
-.sidebar-item.tv-focus .sidebar-item-text {
-  font-weight: 700;
-  transform: scale(1.05);
-  transition: transform 0.2s ease;
-}
-
-.sidebar-item.tv-focus .sidebar-item-icon {
-  transform: scale(1.2);
-  transition: transform 0.2s ease;
-}
-
-/* Special focus style for video cards */
-.video-card.tv-focus .thumbnail {
-  transform: scale(1.03);
-  transition: transform 0.3s ease;
-}
-
-.video-card.tv-focus .video-title {
-  color: #ff1493;
-  transition: color 0.3s ease;
 }
